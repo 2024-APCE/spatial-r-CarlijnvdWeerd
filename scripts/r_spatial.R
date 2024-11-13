@@ -3,7 +3,7 @@
 
 rm(list = ls())
 # set the working directory where your GIS data are located
-setwd("G:/Shared drives/_Org OlffLab/Teaching/APCE/APCE2024/APCE2024GIS")
+setwd("C:/Users/carli/_projects/APCE2024/apce2024gis")
 
 # restore the libraries of the project 
 renv::restore()
@@ -70,7 +70,9 @@ class(protected_areas)
 xlimits<-c(550000,900000)
 ylimits<-c(9600000,9950000)
 
-# plot the woody biomass map that you want to predict
+
+# plot the woody biomass map that you want to predict with terra
+
 
 # plot the rainfall map
 
