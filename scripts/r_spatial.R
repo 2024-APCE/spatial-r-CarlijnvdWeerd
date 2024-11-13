@@ -25,15 +25,15 @@ library(patchwork)  # for combining multiple ggplots in one panel plot
 barplot(rep(1,10), col = grey.colors(10))
 barplot(rep(1,10), col = rev(topo.colors(10))) # rev turns the scale arround
 barplot(rep(1,10), col = rev(terrain.colors(10)))
+# rev means reverse the palette 
 library(RColorBrewer) 
 RColorBrewer::display.brewer.all()
 barplot(rep(1,10), col = RColorBrewer::brewer.pal(10, "Spectral"))
 
 barplot(rep(1,10), col = RColorBrewer::brewer.pal(10, "BrBG"))
 library(viridis)
-barplot(rep(1,10), col = viridis::viridis(10))
+barplot(rep(1,10), col = rev(viridis::viridis(10)))
 barplot(rep(1,10), col = viridis::plasma(10))
-barplot(rep(1,10), col = viridis::heat(10))
 viridis::plasma(10)
 library(wesanderson)
 barplot(rep(1,10), col = rev(wesanderson::wes_palette("Zissou1", 10, type = "continuous")))
@@ -42,9 +42,8 @@ pal_zissou2<-wesanderson::wes_palette("Zissou1", 10, type = "continuous")
 pal_zissou1
 
 # load the vector data for the whole ecosystem
-sf::st_layers("./2022_protected_areas/protected_areas.gpkg")
 protected_areas<-terra::vect("./2022_protected_areas/protected_areas.gpkg",
-            layer="protected_areas_2022") # read protected area boundaries)
+                             layer="protected_areas_2022")
 sf::st_layers("./2022_rivers/rivers_hydrosheds.gpkg")
 rivers<-terra::vect("./2022_rivers/rivers_hydrosheds.gpkg",
                     layer="rivers_hydrosheds")
@@ -64,16 +63,33 @@ elevation<-terra::rast("./2023_elevation/elevation_90m.tif")
 
 # inspect the data 
 class(protected_areas)
+class(elevation)
 
+plot(elevation)
+plot(protected_areas, add=T)
 
-# set the limits of the map to show (xmin, xmax, ymin, ymax in utm36 coordinates)
+# set the limits of the map to show 
+# (xmin, xmax, ymin, ymax in utm36 coordinates)
 xlimits<-c(550000,900000)
 ylimits<-c(9600000,9950000)
 
 
-# plot the woody biomass map that you want to predict with terra
-
-
+# plot the woody biomass map that you want to predict with tidyterra
+ggplot() + 
+  tidyterra::geom_spatraster(data=woodybiom) +
+  scale_fill_gradientn(colours=rev(terrain.colors(6)),
+                       limits=c(0.77,6.55),
+                       oob=squish,
+                       name="TBA/ha") +
+tidyterra::geom_spatvector(data=protected_areas,color="#4D4D4D",
+                           fill=NA, linewidth=0.5) +
+tidyterra::geom_spatvector(data=lakes,
+                           fill="#458EC8") +
+  tidyterra::geom_spatvector(data=rivers,
+                           color="#3773A4") +
+  tidyterra::geom_spatvector(data=studyarea,
+                           fill=NA, color="#F11B00", linewidth=0.7) 
+  
 # plot the rainfall map
 
 # plot the elevation map
