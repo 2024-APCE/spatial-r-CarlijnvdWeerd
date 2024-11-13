@@ -40,6 +40,7 @@ barplot(rep(1,10), col = rev(wesanderson::wes_palette("Zissou1", 10, type = "con
 pal_zissou1<-rev(wesanderson::wes_palette("Zissou1", 10, type = "continuous"))
 pal_zissou2<-wesanderson::wes_palette("Zissou1", 10, type = "continuous")
 pal_zissou1
+pal_zissou2
 
 # load the vector data for the whole ecosystem
 protected_areas<-terra::vect("./2022_protected_areas/protected_areas.gpkg",
@@ -91,6 +92,8 @@ tidyterra::geom_spatvector(data=lakes,
                            fill=NA, color="#F11B00", linewidth=0.7) 
   
 # plot the rainfall map
+tidyterra::geom_spatraster(data=rainfall) +
+  scale_fill_gradientn()
 
 # plot the elevation map
 
