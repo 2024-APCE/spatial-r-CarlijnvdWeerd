@@ -614,3 +614,4 @@ vegan::ordisurf(pca_result, pointdata$woodybiom, add = TRUE, col = "green4")
 
 
 
+
