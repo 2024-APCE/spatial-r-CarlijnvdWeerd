@@ -298,7 +298,7 @@ CEC_map_sa <- ggplot() +
                              color="#3773A4") +
   tidyterra::geom_spatvector(data=studyarea,
                              fill=NA, color="#F11B00", linewidth=0.7) +
-  labs(title="Cation Exchange Capacity of the Soil") +
+  labs(title="Fertility of the Soil") +
   coord_sf(xlimits,ylimits,expand=F,
            datum = sf::st_crs(32736)) +
   theme(axis.text = element_blank(),
@@ -494,41 +494,45 @@ rpoints_map_sa
 
 # and add them to the previous map
 all_maps_sa <- woody_map_sa + elevation_map_sa + rainfall_map_sa + 
-  burnfreq_map_sa + CEC_map_sa + copernicus_tree_cover_map_sa + 
+  burnfreq_map_sa + copernicus_tree_cover_map_sa + CEC_map_sa +  
   distance2river_map_sa + landform_map_sa + lastyear_burn_map_sa + CoreProtectedAreas_map_sa + landform_hill_map_sa+ rpoints_map_sa +
   patchwork::plot_layout(ncol=3)
 all_maps_sa
 
-ggsave("./_figures/all_maps_sa.png", width = 27, height = 20, units = "cm", dpi=300)
+ggsave("./_figures/all_maps_sa.png", width = 29.7, height = 21.0, units = "cm", dpi=300)
 
 #########################
 # extract your the values of the different raster layers to the points
 # Extract raster values at the points
-TBA_gam_utm36S<-terra::vect("./2016_WoodyVegetation/TBA_gam_utm36s.tif")
-
 woodybiom_points <- terra::extract(woodybiom_sa, rpoints) |> 
   as_tibble() |>
-  dplyr::rename(woodybiom=TBA_gam_utm36S)
+  dplyr::rename(woodybiom=TBA_gam_utm36s)
 woodybiom_points
-dist2river_points <- terra::extract(dist2river_sa, rpoints) |> 
+
+distance2river_points <- terra::extract(distance2river_sa, rpoints) |> 
   as_tibble() |>
-  dplyr::rename(dist2river=distance)
-dist2river_points
+  dplyr::rename(distance2river=distance)
+distance2river_points
+
 elevation_points <- terra::extract(elevation, rpoints) |> 
   as_tibble() 
 elevation_points
+
 CorProtAr_points <- terra::extract(CoreProtectedAreas_sa, rpoints) |> 
   as_tibble() |>
   dplyr::rename(CorProtAr=CoreProtectedAreas)
 CorProtAr_points
+
 rainfall_points <- terra::extract(rainfall_sa, rpoints) |> 
   as_tibble() |> 
   dplyr::rename(rainfall=CHIRPS_MeanAnnualRainfall)
 rainfall_points
-cec_points <- terra::extract(cec_sa, rpoints) |> 
+
+CEC_points <- terra::extract(CEC_sa, rpoints) |> 
   as_tibble() |>
-  dplyr::rename(cec='cec_5-15cm_mean')
-cec_points
+  dplyr::rename(CEC='cec_5-15cm_mean')
+CEC_points
+
 burnfreq_points <- terra::extract(burnfreq_sa, rpoints) |> 
   as_tibble() |>
   dplyr::rename(burnfreq=burned_sum)
