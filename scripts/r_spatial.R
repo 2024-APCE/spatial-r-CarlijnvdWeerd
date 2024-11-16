@@ -469,7 +469,7 @@ ggsave("./_figures/all_maps_sa.png", width = 27, height = 20, units = "cm", dpi=
 
 # create 500 random points in our study area
 set.seed(123)
-rpoints <- terra::spatSample(studyarea, size = 500, 
+rpoints <- terra::spatSample(studyarea, size = 250, 
                              method = "random")
 
 # plot the points
@@ -483,7 +483,7 @@ rpoints_map_sa<-ggplot() +
                              fill="lightblue",linewidth=0.5) +
   tidyterra::geom_spatvector(data=rivers,
                              col="blue",linewidth=0.5) +
-  labs(title="500 random points") +
+  labs(title="250 random points") +
   coord_sf(xlimits,ylimits,expand=F,
            datum = sf::st_crs(32736)) +
   theme(axis.text = element_blank(),
@@ -538,17 +538,17 @@ burnfreq_points <- terra::extract(burnfreq_sa, rpoints) |>
   dplyr::rename(burnfreq=burned_sum)
 burnfreq_points
 
-landform_points <- terra::extract(hills_sa, rpoints) |> 
+landform_hills_points <- terra::extract(hills_sa, rpoints) |> 
   as_tibble() |>
   dplyr::rename(hills=remapped)
-landform_points
+landform_hills_points
 
 # merge the different variable into a single table
 # use woody biomass as the last variable
 pointdata<-cbind(distance2river_points[,2],elevation_points[,2],
                  CorProtAr_points[,2],rainfall_points[,2], 
                  CEC_points[,2],burnfreq_points[,2],
-                 landform_points[,2],woodybiom_points[,2]) |>
+                 landform_hills_points[,2],woodybiom_points[,2]) |>
   as_tibble()
 pointdata
 pointdata<-pointdata[complete.cases(pointdata),]
@@ -556,7 +556,7 @@ pointdata<-pointdata[complete.cases(pointdata),]
 
 # plot how woody cover is predicted by different variables
 # Create a correlation panel plot
-install.packages("psych")
+#install.packages("psych")
 library(psych)
 psych::pairs.panels(
   pointdata ,
