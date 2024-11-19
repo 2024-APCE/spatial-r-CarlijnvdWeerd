@@ -1,5 +1,5 @@
 # Piecewise SEM
-
+install.packages("piecewiseSEM")
 library(piecewiseSEM)
 
 # read the pointdata
@@ -50,6 +50,7 @@ dispersion_stat
 # If 𝜙≈1 : No evidence of overdispersion → Poisson is appropriate. (mean≈variance)
 # If 𝜙>1 : Overdispersion is present → Consider quasi-Poisson or negative binomial.
 # If 𝜙<1 : Underdispersion (less common) → Investigate the data further.
+# install.packages("MASS")
 library(MASS)
 model_burnfreq <- MASS::glm.nb(burnfreq ~ CorProtAr + rainfall, 
               data = pointdata)
@@ -72,7 +73,7 @@ p4
 
 # model_cec: predicted by rainfall
 
-model_cec <- glm(cec ~ rainfall + CorProtAr, 
+model_cec <- lm(cec ~ rainfall + CorProtAr, 
                       data = pointdata)
 summary(model_cec)
 
@@ -105,7 +106,7 @@ p7<-ggplot(data=pointdata,aes(y=CorProtAr,x=elevation))+
 p7
 
 # model_rainfall: rainfall predicted by elevation
-model_rainfall <- glm(rainfall ~ elevation, 
+model_rainfall <- lm(rainfall ~ elevation, 
               data = pointdata)
 summary(model_rainfall)
 
