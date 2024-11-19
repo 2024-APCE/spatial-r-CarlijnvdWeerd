@@ -41,24 +41,52 @@ SEMdatastd<-lm(woodybiom~distance2river,elevation,CorProtAr,rainfall,CEC,burnfre
 # browseURL("https://docs.google.com/presentation/d/1Q7uXC5Wiu0G4Xsp5uszCNHKOnf1IMI9doY-13Wbay4A/edit?usp=sharing")
 
 # Make a lavaan model as hypothesized in the Anderson et al 2007 paper and fit the model 
-Woodybiom_model <- 'LF_N~BIOMASS+RES_LHU+FIRE_FRQ+NMS
-               BIOMASS~FIRE_FRQ+RES_LHU
-               NMS~FIRE_FRQ+RES_LHU'
-Leaf_N_model
-Leaf_N_fit<-lavaan::sem(Leaf_N_model, data=Anderson2007std)
+Woodybiom_model1 <- 'woodybiom~burnfreq+rainfall+CEC+EVI+soil_pH
+                    CorProtAr~elevation
+                    burnfreq~CorProtAr+distance2river
+                    CEC~rainfall+burnfreq
+                    EVI~CEC+rainfall
+                    soil_pH~rainfall
+                    distance2river~hills'
+               
+
+Woodybiom_model1
+Woodybiom_fit1<-lavaan::sem(Woodybiom_model1, data=SEMdatastd)
 # show the model results
-summary(Leaf_N_fit,standardized=T,fit.measures=T,rsquare=T)
+summary(Woodybiom_fit1,standardized=T,fit.measures=T,rsquare=T)
 
 # goodness of fit (should be >0.9): CFI and TLI
 # badness of fit: ( should be <0.1): RMSEA, SRMR
 
-# Make a lavaan model for phosphorus 
-Leaf_P_model <- 'LF_P~BIOMASS+RES_LHU+FIRE_FRQ+NMS
-                 BIOMASS~FIRE_FRQ+RES_LHU
-                 NMS~FIRE_FRQ+RES_LHU'
-Leaf_P_model
-Leaf_P_fit<-lavaan::sem(Leaf_P_model, data=Anderson2007std)
-summary(Leaf_P_fit,standardized=T,fit.measures=T,rsquare=T)
+Woodybiom_model2 <- 'woodybiom~burnfreq+rainfall+CEC+soil_pH+distance2river
+                    CorProtAr~elevation
+                    burnfreq~CorProtAr+distance2river+rainfall+woodybiom
+                    rainfall~elevation
+                    CEC~rainfall+burnfreq
+                    soil_pH~rainfall+burnfreq
+                    distance2river~hills'
+
+
+Woodybiom_model2
+Woodybiom_fit2<-lavaan::sem(Woodybiom_model2, data=SEMdatastd)
+# show the model results
+summary(Woodybiom_fit2,standardized=T,fit.measures=T,rsquare=T)
+
+Woodybiom_model3 <- 'woodybiom~burnfreq+rainfall+CEC+soil_pH
+                    CorProtAr~elevation
+                    burnfreq~CorProtAr+distance2river+rainfall
+                    rainfall~elevation
+                    CEC~rainfall+burnfreq+elevation
+                    soil_pH~rainfall+burnfreq
+                    distance2river~hills+rainfall'
+
+
+Woodybiom_model3
+Woodybiom_fit3<-lavaan::sem(Woodybiom_model3, data=SEMdatastd)
+# show the model results
+summary(Woodybiom_fit3,standardized=T,fit.measures=T,rsquare=T)
+
+
 
 
 
