@@ -60,7 +60,8 @@ dispersion_stat
 # If 𝜙<1 : Underdispersion (less common) → Investigate the data further.
 # install.packages("MASS")
 library(MASS)
-model_burnfreq <- MASS::glm.nb(burnfreq ~ CorProtAr + rainfall + distance2river, 
+model_burnfreq <- MASS::glm.nb(burnfreq ~ CorProtAr + rainfall 
+                               + distance2river +elevation, 
                                data = pointdata)
 summary(model_burnfreq)
 
@@ -87,6 +88,14 @@ p6<-ggplot(data=pointdata,aes(y=burnfreq,x=distance2river))+
               formula= y~x,
               se=T)
 p6
+
+p19<-ggplot(data=pointdata,aes(y=burnfreq,x=elevation))+
+  geom_jitter(width = 0.05, height = 0.1) +
+  geom_smooth(method="glm",
+              method.args=list(family=quasipoisson),
+              formula= y~x,
+              se=T)
+p19
 
 # model_cec: predicted by elevation, burning frequency and soil pH
 
@@ -129,21 +138,93 @@ p10<-ggplot(data=pointdata,aes(y=CorProtAr,x=elevation))+
               se=T)
 p10
 
+
 # model_rainfall: rainfall predicted by elevation
 model_rainfall <- lm(rainfall ~ elevation, 
                      data = pointdata)
 summary(model_rainfall)
 
-p8<-ggplot(data=pointdata,aes(y=rainfall,x=elevation))+
+p11<-ggplot(data=pointdata,aes(y=rainfall,x=elevation))+
   geom_point() +
   geom_smooth(method="lm",
               formula= y~x,
               se=T)
-p8
+p11
+
+model_soil_pH <- glm(soil_pH ~ rainfall+burnfreq+elevation+hills,
+                     family=Gamma(link = "log"), 
+                    data = pointdata)
+
+# Calculate dispersion statgaussian()# Calculate dispersion statistic
+dispersion_stat2 <- summary(model_soil_pH)$deviance / summary(model_soil_pH)$df.residual
+dispersion_stat2
+# If 𝜙≈1 : No evidence of overdispersion → Poisson is appropriate. (mean≈variance)
+# If 𝜙>1 : Overdispersion is present → Consider quasi-Poisson or negative binomial.
+# If 𝜙<1 : Underdispersion (less common) → Investigate the data further.
+# install.packages("MASS")
+library(MASS)
+model_soil_pH_mass <- MASS::glm.nb(soil_pH ~ rainfall + burnfreq, 
+                               data = pointdata)
+summary(model_soil_pH_mass)
+
+p12<-ggplot(data=pointdata,aes(y=soil_pH,x=rainfall))+
+  geom_jitter(width = 0.05, height = 0.1) +
+  geom_smooth(method="glm",
+              method.args=list(family=gaussian),  # close to glm.nb
+              formula= y~x,
+              se=T)
+p12
+
+p13<-ggplot(data=pointdata,aes(y=soil_pH,x=burnfreq))+
+  geom_jitter(width = 0.05, height = 0.1) +
+  geom_smooth(method="glm",
+              method.args=list(family=quasipoisson),
+              formula= y~x,
+              se=T)
+p13
+
+p16<-ggplot(data=pointdata,aes(y=soil_pH,x=elevation))+
+  geom_point() +
+  geom_smooth(method="lm",
+              formula= y~x,
+              se=T)
+p16
+
+p17<-ggplot(data=pointdata,aes(y=soil_pH,x=hills))+
+  geom_jitter(width = 0.05, height = 0.1) +
+  geom_point() +
+  geom_smooth(method="lm",
+              formula= y~x,
+              se=T)
+p17
+
+model_distance2river<-lm(distance2river~hills+rainfall+elevation,
+                         data=pointdata)
+
+p14<-ggplot(data=pointdata,aes(y=distance2river,x=hills))+
+  geom_point() +
+  geom_smooth(method="lm",
+              formula= y~x,
+              se=T)
+p14
+
+p15<-ggplot(data=pointdata,aes(y=distance2river,x=rainfall))+
+  geom_point() +
+  geom_smooth(method="lm",
+              formula= y~x,
+              se=T)
+p15
+
+p18<-ggplot(data=pointdata,aes(y=distance2river,x=elevation))+
+  geom_point() +
+  geom_smooth(method="lm",
+              formula= y~x,
+              se=T)
+p18
 
 # combine the figures
 library(patchwork)
-allplots<-p1+p2+p3+p4+p5+p6+p7+
+allplots<-p1+p2+p3+p4+p5+p6+p7+p8+p9+p10+p11+p12+p13+p14+p15 +
   patchwork::plot_layout(ncol=3) +
   patchwork::plot_annotation(title="Relations in model 1")
 allplots
@@ -151,9 +232,11 @@ allplots
 ####### Combine all models into a single piecewise SEM
 psem_model <- piecewiseSEM::psem(model_woody,
                                  model_burnfreq,
-                                 model_cec,
+                                 model_CEC,
                                  model_CorProtAr,
-                                 model_rainfall)
+                                 model_rainfall,
+                                 model_soil_pH,
+                                 model_distance2river)
 
 # Summarize the SEM results
 summary(psem_model)
