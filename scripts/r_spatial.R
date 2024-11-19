@@ -10,6 +10,8 @@ renv::restore()
 
 
 # load the different libraries
+# install.packages("colorRamps")
+library(colorRamps)   # for color palettes
 library(terra)       # for working with raster data
 library(tidyterra)   # for adding terra objects to ggplot
 library(ggspatial)  # for scale bars
@@ -444,7 +446,7 @@ landform_hill_map_sa<-ggplot() +
   tidyterra::geom_spatvector(data=protected_areas,
                              fill=NA,linewidth=0.7) +
   tidyterra::geom_spatvector(data=studyarea,
-                             fill=NA,linewidth=0.5,col="green") +
+                             fill=NA,linewidth=0.5,col="red") +
   tidyterra::geom_spatvector(data=lakes,
                              fill="lightblue",linewidth=0.5) +
   tidyterra::geom_spatvector(data=rivers,
@@ -457,17 +459,63 @@ landform_hill_map_sa<-ggplot() +
   ggspatial::annotation_scale(location="bl",width_hint=0.2)
 landform_hill_map_sa
 
+# Additional maps 
+worldcover<-terra::rast("./my_data/esa_worldcover_2021_aoi15_10m.tif")
+worldcover_sa<-terra::crop(burnfreq,saExt)
+EVI<-terra::rast("./my_data/EVI_trend.tif")
+EVI_sa<-terra::crop(EVI_trend,saExt)
+GPP <- terra::rast("./my_data/GPP.tif")
+GPP_sa<-terra::crop(GPP,saExt)
+Soil_pH <- terra::rast("./my_data/Soil_pH.tif")
+Soil_pH_sa<-terra::crop(Soil_pH,saExt)
 
-### put all maps together
-all_maps_sa <- woody_map_sa + elevation_map_sa + rainfall_map_sa + 
-  burnfreq_map_sa + CEC_map_sa + copernicus_tree_cover_map_sa + 
-  distance2river_map_sa + landform_map_sa + lastyear_burn_map_sa + CoreProtectedAreas_map_sa + landform_hill_map_sa +
-  patchwork::plot_layout(ncol=3)
-all_maps_sa
+# EVI trend
+EVI_map_sa<-ggplot() +
+  tidyterra::geom_spatraster(data=EVI_sa) +
+  scale_fill_gradientn(colours=RColorBrewer::brewer.pal(n = 9, name = "YlGn"),
+                       limits=c(2000,7000),
+                       oob=squish,
+                       name="meters") +
+  tidyterra::geom_spatvector(data=protected_areas,
+                             fill=NA,linewidth=0.7) +
+  tidyterra::geom_spatvector(data=studyarea,
+                             fill=NA,linewidth=0.5,col="red") +
+  tidyterra::geom_spatvector(data=lakes,
+                             fill="lightblue",linewidth=0.5) +
+  tidyterra::geom_spatvector(data=rivers,
+                             col="blue",linewidth=0.5) +
+  labs(title="EVI trend") +
+  coord_sf(xlimits,ylimits,expand=F,
+           datum = sf::st_crs(32736)) +
+  theme(axis.text = element_blank(),
+        axis.ticks = element_blank()) +
+  ggspatial::annotation_scale(location="bl",width_hint=0.2)
+EVI_map_sa
 
-ggsave("./_figures/all_maps_sa.png", width = 27, height = 20, units = "cm", dpi=300)
+# Soil pH
+Soil_pH_map_sa<-ggplot() +
+  tidyterra::geom_spatraster(data=Soil_pH_sa) +
+  scale_fill_gradientn(colours=matlab.like2(30),
+                       limits=c(5.7,7.3),
+                       oob=squish,
+                       name="pH") +
+  tidyterra::geom_spatvector(data=protected_areas,
+                             fill=NA,linewidth=0.7) +
+  tidyterra::geom_spatvector(data=studyarea,
+                             fill=NA,linewidth=0.5,col="red") +
+  tidyterra::geom_spatvector(data=lakes,
+                             fill="lightblue",linewidth=0.5) +
+  tidyterra::geom_spatvector(data=rivers,
+                             col="blue",linewidth=0.5) +
+  labs(title="Soil pH at soil depth 0-20 cm") +
+  coord_sf(xlimits,ylimits,expand=F,
+           datum = sf::st_crs(32736)) +
+  theme(axis.text = element_blank(),
+        axis.ticks = element_blank()) +
+  ggspatial::annotation_scale(location="bl",width_hint=0.2)
+Soil_pH_map_sa
 
-# create 500 random points in our study area
+# create 250 random points in our study area
 set.seed(123)
 rpoints <- terra::spatSample(studyarea, size = 250, 
                              method = "random")
@@ -553,6 +601,8 @@ pointdata<-cbind(distance2river_points[,2],elevation_points[,2],
 pointdata
 pointdata<-pointdata[complete.cases(pointdata),]
 
+getwd()
+readr::write_csv(pointdata, "pointdata.csv")
 
 # plot how woody cover is predicted by different variables
 # Create a correlation panel plot
