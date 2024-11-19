@@ -87,6 +87,33 @@ Woodybiom_fit3<-lavaan::sem(Woodybiom_model3, data=SEMdatastd)
 summary(Woodybiom_fit3,standardized=T,fit.measures=T,rsquare=T)
 
 
+Woodybiom_model4 <- 'woodybiom~burnfreq+rainfall+CEC+soil_pH
+                    CorProtAr~elevation
+                    burnfreq~CorProtAr+distance2river+rainfall
+                    rainfall~elevation
+                    CEC~burnfreq+elevation+soil_pH
+                    soil_pH~rainfall+burnfreq
+                    distance2river~hills+rainfall'
+
+
+Woodybiom_model4
+Woodybiom_fit4<-lavaan::sem(Woodybiom_model4, data=SEMdatastd)
+# show the model results
+summary(Woodybiom_fit4,standardized=T,fit.measures=T,rsquare=T)
+
+Woodybiom_model5 <- 'woodybiom~rainfall+CEC+soil_pH
+                    CorProtAr~elevation
+                    burnfreq~CorProtAr+rainfall+distance2river
+                    rainfall~elevation
+                    CEC~burnfreq+elevation+soil_pH
+                    soil_pH~rainfall+burnfreq
+                    distance2river~hills+rainfall'
+
+
+Woodybiom_model5
+Woodybiom_fit5<-lavaan::sem(Woodybiom_model5, data=SEMdatastd)
+# show the model results
+summary(Woodybiom_fit5,standardized=T,fit.measures=T,rsquare=T)
 
 
 
