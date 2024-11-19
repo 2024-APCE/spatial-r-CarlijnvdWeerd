@@ -29,10 +29,13 @@ SEMdatastd
 # note that this does not affect the relations between the variables, only the scales  
 
 # make a pairs panel to inspect linearity of relations and expected normality of residuals
-psych::pairs.panels(SEMdata %>% select(distance2river,elevation,CorProtAr,rainfall,CEC,burnfreq,hills,EVI,soil_pH,woodybiom),
+psych::pairs.panels(SEMdata %>% select(distance2river,elevation,CorProtAr,rainfall,CEC,burnfreq,hills,soil_pH,woodybiom),
                     stars = T, ellipses = F)
-psych::pairs.panels(SEMdatastd %>% select(distance2river,elevation,CorProtAr,rainfall,CEC,burnfreq,hills,EVI,soil_pH,woodybiom),
+psych::pairs.panels(SEMdatastd %>% select(distance2river,elevation,CorProtAr,rainfall,CEC,burnfreq,hills,soil_pH,woodybiom),
                     stars = T, ellipses = F)
+
+ggsave("./_figures/pairs_panels.png", width = 26, height = 18, units = "cm", dpi=300) 
+
 
 # analyse the model (response ~ predictors) with a multiple regression approach 
 SEMdatastd<-lm(woodybiom~distance2river,elevation,CorProtAr,rainfall,CEC,burnfreq,hills,EVI,soil_pH)
