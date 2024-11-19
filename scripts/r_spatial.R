@@ -475,7 +475,7 @@ EVI_map_sa<-ggplot() +
   scale_fill_gradientn(colours=RColorBrewer::brewer.pal(n = 9, name = "YlGn"),
                        limits=c(2000,7000),
                        oob=squish,
-                       name="meters") +
+                       name=NULL) +
   tidyterra::geom_spatvector(data=protected_areas,
                              fill=NA,linewidth=0.7) +
   tidyterra::geom_spatvector(data=studyarea,
@@ -543,7 +543,7 @@ rpoints_map_sa
 # and add them to the previous map
 all_maps_sa <- woody_map_sa + elevation_map_sa + rainfall_map_sa + 
   burnfreq_map_sa + copernicus_tree_cover_map_sa + CEC_map_sa +  
-  distance2river_map_sa + landform_map_sa + lastyear_burn_map_sa + CoreProtectedAreas_map_sa + landform_hill_map_sa+ rpoints_map_sa +
+  distance2river_map_sa + landform_map_sa + lastyear_burn_map_sa + CoreProtectedAreas_map_sa + landform_hill_map_sa+ rpoints_map_sa + EVI_map_sa + Soil_pH_map_sa +
   patchwork::plot_layout(ncol=3)
 all_maps_sa
 
@@ -552,10 +552,10 @@ ggsave("./_figures/all_maps_sa.png", width = 29.7, height = 21.0, units = "cm", 
 #########################
 # extract your the values of the different raster layers to the points
 # Extract raster values at the points
-woodybiom_points <- terra::extract(woodybiom_sa, rpoints) |> 
+woody_points <- terra::extract(woodybiom_sa, rpoints) |> 
   as_tibble() |>
   dplyr::rename(woodybiom=TBA_gam_utm36s)
-woodybiom_points
+woody_points
 
 distance2river_points <- terra::extract(distance2river_sa, rpoints) |> 
   as_tibble() |>
@@ -591,12 +591,20 @@ landform_hills_points <- terra::extract(hills_sa, rpoints) |>
   dplyr::rename(hills=remapped)
 landform_hills_points
 
+EVI_points <- terra::extract(EVI_sa, rpoints) |> 
+  as_tibble() 
+EVI_points
+
+Soil_pH_points <- terra::extract(Soil_pH_sa, rpoints) |> 
+  as_tibble() 
+
+
 # merge the different variable into a single table
 # use woody biomass as the last variable
 pointdata<-cbind(distance2river_points[,2],elevation_points[,2],
                  CorProtAr_points[,2],rainfall_points[,2], 
                  CEC_points[,2],burnfreq_points[,2],
-                 landform_hills_points[,2],woodybiom_points[,2]) |>
+                 landform_hills_points[,2],EVI_points[,2],Soil_pH_points[,2],woody_points[,2]) |>
   as_tibble()
 pointdata
 pointdata<-pointdata[complete.cases(pointdata),]
@@ -621,7 +629,7 @@ psych::pairs.panels(
 # make long format
 names(pointdata)
 pointdata_long<-pivot_longer(data=pointdata,
-                             cols = distance2river:hills, # all except woody
+                             cols = distance2river:mean_0_20, # all except woody
                              names_to ="pred_var",
                              values_to = "pred_val")
 pointdata_long
