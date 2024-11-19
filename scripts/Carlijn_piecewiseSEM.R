@@ -23,7 +23,7 @@ psych::pairs.panels(pointdata,stars = T, ellipses = F)
 # browseURL("https://docs.google.com/presentation/d/1PB8rhbswyPew-FYULsw1pIl8Jyb1FFElKPf34DZrEY8/edit?usp=sharing")
 
 # Model 1: woody predicted by burnfreq and rainfall
-model_woody <- lm(woodybiom ~ CEC +rainfall+soil_pH , 
+model_woody <- lm(woodybiom ~ CEC +rainfall+soil_pH+elevation+burnfreq , 
                   data = pointdata)
 summary(model_woody)
 p1<-ggplot(data=pointdata,aes(x=rainfall,y=woodybiom))+
@@ -47,6 +47,22 @@ p3<-ggplot(data=pointdata,aes(x=soil_pH,y=woodybiom))+
               formula= y~x,
               se=T)
 p3
+
+p20<-ggplot(data=pointdata,aes(x=elevation,y=woodybiom))+
+  geom_point() +
+  geom_smooth(method="lm",
+              #              method.args=list(family=Gamma(link="log")),
+              formula= y~x,
+              se=T)
+p20
+
+p21<-ggplot(data=pointdata,aes(x=burnfreq,y=woodybiom))+
+  geom_point() +
+  geom_smooth(method="lm",
+              #              method.args=list(family=Gamma(link="log")),
+              formula= y~x,
+              se=T)
+p21
 
 # Model_burnfreq: burning frequency predicted by Core Protected Areas, Distance 2 River and Rainfall
 model_burnfreq_init <- glm(burnfreq ~ CorProtAr + rainfall + distance2river, 
@@ -126,7 +142,7 @@ p9
 
 
 # model_CorProtAra:  predicted by elevation
-model_CorProtAr <-glm(CorProtAr~elevation,
+model_CorProtAr <-glm(CorProtAr~elevation+hills,
                       family=binomial,
                       data=pointdata)
 summary(model_CorProtAr)
@@ -138,9 +154,16 @@ p10<-ggplot(data=pointdata,aes(y=CorProtAr,x=elevation))+
               se=T)
 p10
 
+# p22 <- ggplot(data=pointdata, aes(y=CorProtAr, x=hills)) +
+  geom_jitter(width = 0.05, height = 0.1) + # Jitter to prevent overplotting
+  geom_smooth(method="glm",                # Use generalized linear model
+              method.args = list(family="binomial"), # Logistic regression
+              formula = y ~ x,             # Specify the formula
+              se = TRUE)
+# p22
 
 # model_rainfall: rainfall predicted by elevation
-model_rainfall <- lm(rainfall ~ elevation, 
+model_rainfall <- lm(rainfall ~ elevation+hills, 
                      data = pointdata)
 summary(model_rainfall)
 
@@ -151,6 +174,14 @@ p11<-ggplot(data=pointdata,aes(y=rainfall,x=elevation))+
               se=T)
 p11
 
+p23<-ggplot(data=pointdata,aes(y=rainfall,x=hills))+
+  geom_point() +
+  geom_smooth(method="lm",
+              formula= y~x,
+              se=T)
+p23
+
+# model soil pH
 model_soil_pH <- glm(soil_pH ~ rainfall+burnfreq+elevation+hills,
                      family=Gamma(link = "log"), 
                     data = pointdata)
@@ -263,3 +294,174 @@ summary(psem_model)
 # - ignofing significant d-separation tests and failing to modify the model
 # - adding too many variables and pathways, leading to overfitting and loss of parsimony
 
+# Model 2: woody predicted by burnfreq and rainfall
+model_woody2 <- glm(woodybiom ~ CEC +rainfall+soil_pH ,
+                    family=inverse.gaussian(link="log"),
+                  data = pointdata)
+summary(model_woody2)
+
+# Model_burnfreq: burning frequency predicted by Core Protected Areas, Distance 2 River and Rainfall
+model_burnfreq_init <- glm(burnfreq ~ CorProtAr + rainfall + distance2river, 
+                           family=poisson, 
+                           data = pointdata)
+# Calculate dispersion statistic
+dispersion_stat <- summary(model_burnfreq_init)$deviance / summary(model_burnfreq_init)$df.residual
+dispersion_stat
+# If 𝜙≈1 : No evidence of overdispersion → Poisson is appropriate. (mean≈variance)
+# If 𝜙>1 : Overdispersion is present → Consider quasi-Poisson or negative binomial.
+# If 𝜙<1 : Underdispersion (less common) → Investigate the data further.
+# install.packages("MASS")
+library(MASS)
+model_burnfreq2 <- MASS::glm.nb(burnfreq ~ CorProtAr + rainfall 
+                               + distance2river +elevation, 
+                               data = pointdata)
+summary(model_burnfreq2)
+
+
+# model_cec: predicted by elevation, burning frequency and soil pH
+
+model_CEC2 <- lm(CEC ~ elevation + burnfreq, 
+                data = pointdata)
+summary(model_CEC2)
+
+
+# model_CorProtAra:  predicted by elevation
+model_CorProtAr2 <-glm(CorProtAr~elevation,
+                      family=binomial,
+                      data=pointdata)
+summary(model_CorProtAr2)
+
+# model_rainfall: rainfall predicted by elevation
+model_rainfall2 <- lm(rainfall ~ elevation, 
+                     data = pointdata)
+summary(model_rainfall2)
+
+# model soil pH
+model_soil_pH2 <- glm(soil_pH ~ rainfall+burnfreq+elevation,
+                     family=Gamma(link = "inverse"), 
+                     data = pointdata)
+
+# Calculate dispersion statgaussian()# Calculate dispersion statistic
+dispersion_stat2 <- summary(model_soil_pH)$deviance / summary(model_soil_pH)$df.residual
+dispersion_stat2
+# If 𝜙≈1 : No evidence of overdispersion → Poisson is appropriate. (mean≈variance)
+# If 𝜙>1 : Overdispersion is present → Consider quasi-Poisson or negative binomial.
+# If 𝜙<1 : Underdispersion (less common) → Investigate the data further.
+# install.packages("MASS")
+library(MASS)
+#model_soil_pH_mass2 <- MASS::glm.nb(soil_pH ~ rainfall + burnfreq, 
+                               #    data = pointdata)
+# summary(model_soil_pH_mass)
+
+# model distance 2 river
+model_distance2river2<-lm(distance2river~hills+rainfall,
+                         data=pointdata)
+
+# combine the figures
+library(patchwork)
+allplots<-p1+p2+p3+p4+p5+p6+p7+p8+p9+p10+p11+p12+p13+p14+p15 +
+  patchwork::plot_layout(ncol=3) +
+  patchwork::plot_annotation(title="Relations in model 1")
+allplots
+
+####### Combine all models into a single piecewise SEM
+psem_model2 <- piecewiseSEM::psem(model_woody2,
+                                 model_burnfreq2,
+                                 model_CEC2,
+                                 model_CorProtAr2,
+                                 model_rainfall2,
+                                 model_soil_pH2,
+                                 model_distance2river2)
+
+# Summarize the SEM results
+summary(psem_model2)
+
+# compare the two psem models
+anova(psem_model, psem_model2)
+#############################################################################
+
+# Model 3: woody predicted by burnfreq and rainfall
+model_woody3 <- glm(woodybiom ~ CEC +rainfall+soil_pH+elevation+burnfreq ,
+                    family=inverse.gaussian(link="log"),
+                    data = pointdata)
+summary(model_woody3)
+
+# Model_burnfreq: burning frequency predicted by Core Protected Areas, Distance 2 River and Rainfall
+model_burnfreq_init <- glm(burnfreq ~ CorProtAr + rainfall + distance2river, 
+                           family=poisson, 
+                           data = pointdata)
+# Calculate dispersion statistic
+dispersion_stat <- summary(model_burnfreq_init)$deviance / summary(model_burnfreq_init)$df.residual
+dispersion_stat
+# If 𝜙≈1 : No evidence of overdispersion → Poisson is appropriate. (mean≈variance)
+# If 𝜙>1 : Overdispersion is present → Consider quasi-Poisson or negative binomial.
+# If 𝜙<1 : Underdispersion (less common) → Investigate the data further.
+# install.packages("MASS")
+library(MASS)
+model_burnfreq3 <- MASS::glm.nb(burnfreq ~ CorProtAr + rainfall 
+                                + distance2river +elevation, 
+                                data = pointdata)
+summary(model_burnfreq3)
+
+
+# model_cec: predicted by elevation, burning frequency and soil pH
+
+model_CEC3 <- lm(CEC ~ elevation + burnfreq + soil_pH, 
+                 data = pointdata)
+summary(model_CEC3)
+
+
+# model_CorProtAra:  predicted by elevation
+model_CorProtAr3 <-glm(CorProtAr~elevation+hills,
+                       family=binomial,
+                       data=pointdata)
+summary(model_CorProtAr3)
+
+# model_rainfall: rainfall predicted by elevation
+model_rainfall3 <- lm(rainfall ~ elevation+hills, 
+                      data = pointdata)
+summary(model_rainfall3)
+
+# model soil pH
+model_soil_pH3 <- glm(soil_pH ~ rainfall+burnfreq+elevation,
+                      family=Gamma(link = "inverse"), 
+                      data = pointdata)
+
+# Calculate dispersion statgaussian()# Calculate dispersion statistic
+dispersion_stat2 <- summary(model_soil_pH)$deviance / summary(model_soil_pH)$df.residual
+dispersion_stat2
+# If 𝜙≈1 : No evidence of overdispersion → Poisson is appropriate. (mean≈variance)
+# If 𝜙>1 : Overdispersion is present → Consider quasi-Poisson or negative binomial.
+# If 𝜙<1 : Underdispersion (less common) → Investigate the data further.
+# install.packages("MASS")
+library(MASS)
+#model_soil_pH_mass2 <- MASS::glm.nb(soil_pH ~ rainfall + burnfreq, 
+#    data = pointdata)
+# summary(model_soil_pH_mass)
+
+# model distance 2 river
+model_distance2river3<-lm(distance2river~hills+rainfall+elevation,
+                          data=pointdata)
+
+# combine the figures
+library(patchwork)
+allplots<-p1+p2+p3+p4+p5+p6+p7+p8+p9+p10+p11+p12+p13+p14+p15 +
+  patchwork::plot_layout(ncol=3) +
+  patchwork::plot_annotation(title="Relations in model 1")
+allplots
+
+####### Combine all models into a single piecewise SEM
+psem_model3 <- piecewiseSEM::psem(model_woody3,
+                                  model_burnfreq3,
+                                  model_CEC3,
+                                  model_CorProtAr3,
+                                  model_rainfall3,
+                                  model_soil_pH3,
+                                  model_distance2river3)
+
+# Summarize the SEM results
+summary(psem_model3)
+
+# compare with previous models
+anova(psem_model, psem_model3)
+anova(psem_model2, psem_model3)
