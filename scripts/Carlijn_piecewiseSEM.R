@@ -296,11 +296,21 @@ summary(psem_model)
 # - ignofing significant d-separation tests and failing to modify the model
 # - adding too many variables and pathways, leading to overfitting and loss of parsimony
 
+install.packages("statmod")
+install.packages("tweedie")
+library(statmod)
+library(tweedie)
+
 # Model 2: woody predicted by burnfreq and rainfall
 model_woody2 <- glm(woodybiom ~ CEC +rainfall+soil_pH ,
-                    family=inverse.gaussian(link="log"),
+                    family=gaussian(link = "log"),
                   data = pointdata)
 summary(model_woody2)
+
+model_woody2<- lm(woodybiom ~ CEC +rainfall+soil_pH, 
+                 data = pointdata)
+
+
 
 plot1<-ggplot(data=pointdata,aes(x=rainfall,y=woodybiom))+
   geom_point() +
@@ -423,8 +433,7 @@ plot11<-ggplot(data=pointdata,aes(y=rainfall,x=elevation))+
 plot11
 
 # model soil pH
-model_soil_pH2 <- glm(soil_pH ~ rainfall+burnfreq+elevation,
-                     family=Gamma(link = "inverse"), 
+model_soil_pH2 <- lm(soil_pH ~ rainfall+burnfreq+elevation,
                      data = pointdata)
 
 plot12<-ggplot(data=pointdata,aes(y=soil_pH,x=rainfall))+
