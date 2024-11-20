@@ -92,7 +92,7 @@ tidyterra::geom_spatvector(data=lakes,
                            color="#3773A4") +
   tidyterra::geom_spatvector(data=studyarea,
                            fill=NA, color="#F11B00", linewidth=0.7) +
-  labs(title="woody biomass") +
+  labs(title="Woody Biomass") +
   coord_sf(xlimits,ylimits,datum = sf::st_crs(32736)) +
   theme(axis.text = element_blank(),
         axis.ticks = element_blank()) +
@@ -114,12 +114,15 @@ rainfall_map <- ggplot() +
                              color="#3773A4") +
   tidyterra::geom_spatvector(data=studyarea,
                              fill=NA, color="#F11B00", linewidth=0.7) +
-  labs(title="rainfall") +
+  labs(title="Rainfall") +
   coord_sf(xlimits,ylimits,datum = sf::st_crs(32736)) +
   theme(axis.text = element_blank(),
         axis.ticks = element_blank()) +
   ggspatial::annotation_scale(location="bl", width_hint = 0.5)  
 rainfall_map
+
+install.packages("ggnewscale")
+library(ggnewscale)
 
 # plot the elevation map
 elevation_map <- ggplot() + 
@@ -128,6 +131,9 @@ elevation_map <- ggplot() +
                        limits=c(500,2100),
                        oob=squish,
                        name="meters") +
+  ggnewscale::new_scale_fill() +
+  tidyterra::geom_spatraster(data = hillshade, alpha = 0.5) +
+  scale_fill_viridis_c(limits = c(0, 255), name = "hillshade") +
   tidyterra::geom_spatvector(data=protected_areas,color="#4D4D4D",
                              fill=NA, linewidth=0.5) +
   tidyterra::geom_spatvector(data=lakes,
@@ -136,7 +142,7 @@ elevation_map <- ggplot() +
                              color="#3773A4") +
   tidyterra::geom_spatvector(data=studyarea,
                              fill=NA, color="#F11B00", linewidth=0.7) +
-  labs(title="elevation") +
+    labs(title="Elevation") +
   coord_sf(xlimits,ylimits,datum = sf::st_crs(32736)) +
   theme(axis.text = element_blank(),
         axis.ticks = element_blank()) +
@@ -146,10 +152,10 @@ elevation_map
 # combine the different maps  into one composite map using the patchwork library
 # and save it to a high resolution png
 all_maps <- woody_map + elevation_map + rainfall_map + 
-  patchwork::plot_layout(ncol=1)
+  patchwork::plot_layout(ncol=3)
 all_maps
 
-ggsave("./_figures/all_maps.png", width = 18, height = 18, units = "cm", dpi=300) 
+ggsave("./_figures/all_maps.png", width = 26, height = 18, units = "cm", dpi=300) 
 
 ############################
 ### explore your study area
@@ -286,12 +292,20 @@ burnfreq_map_sa <- ggplot() +
 burnfreq_map_sa
 
 # CEC map
+
+# first you need to increase the raster resolution to 30 m
+# Define the extent and resolution for the new raster
+CEC_30m <- rast(terra::ext(CEC), resolution = 30, crs = crs(CEC))
+# Resample the raster to 30m resolution
+CEC_30m <- terra::resample(CEC, CEC_30m, method = "bilinear")  
+CEC_sa<-terra::crop(CEC_30m,saExt) # crop to study area
+
 CEC_map_sa <- ggplot() + 
   tidyterra::geom_spatraster(data=CEC_sa) +
   scale_fill_gradientn(colours=RColorBrewer::brewer.pal(n = 9, name = "RdYlGn"),
                        limits=c(0,300),
                        oob=squish,
-                       name="Soil\nCEC\n5-15cm") +
+                       name="nCEC/n5-15cm") +
   tidyterra::geom_spatvector(data=protected_areas,color="#4D4D4D",
                              fill=NA, linewidth=0.5) +
   tidyterra::geom_spatvector(data=lakes,
@@ -463,7 +477,7 @@ landform_hill_map_sa
 worldcover<-terra::rast("./my_data/esa_worldcover_2021_aoi15_10m.tif")
 worldcover_sa<-terra::crop(burnfreq,saExt)
 EVI<-terra::rast("./my_data/EVI_trend.tif")
-EVI_sa<-terra::crop(EVI_trend,saExt)
+EVI_sa<-terra::crop(EVI,saExt)
 GPP <- terra::rast("./my_data/GPP.tif")
 GPP_sa<-terra::crop(GPP,saExt)
 Soil_pH <- terra::rast("./my_data/Soil_pH.tif")
@@ -543,7 +557,7 @@ rpoints_map_sa
 # and add them to the previous map
 all_maps_sa <- woody_map_sa + elevation_map_sa + rainfall_map_sa + 
   burnfreq_map_sa + copernicus_tree_cover_map_sa + CEC_map_sa +  
-  distance2river_map_sa + landform_map_sa + lastyear_burn_map_sa + CoreProtectedAreas_map_sa + landform_hill_map_sa+ rpoints_map_sa + EVI_map_sa + Soil_pH_map_sa +
+  distance2river_map_sa + CoreProtectedAreas_map_sa + landform_hill_map_sa + EVI_map_sa + Soil_pH_map_sa + rpoints_map_sa +
   patchwork::plot_layout(ncol=3)
 all_maps_sa
 
